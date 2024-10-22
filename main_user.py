@@ -469,7 +469,7 @@ class UserGUI:
                     else:
                         st.error("You didn't submit your answer 😢")
                     with st.spinner("Waiting for Host"):
-                        time.sleep(6)
+                        time.sleep(3)
                 with st.empty():
                     self.countdown_v2(datetime_question_started)
 
@@ -605,7 +605,7 @@ class UserGUI:
         st.session_state.answer_text = ''  # Reset the answer text
         st.session_state.disable_question_buttons = False
 
-        if st.session_state.index_questions_df >= 0:
+        if st.session_state.index_questions_df >= 4:
             st.session_state.show_wildcards = True
 
         st.session_state.current_session_status = self.get_current_session_state()
