@@ -624,7 +624,7 @@ class UserGUI:
                         st.balloons()
                         st.session_state.congrats_waiting_room = False
 
-                elif (st.session_state.keep_playing == False):
+                elif (st.session_state.keep_playing == False) & (st.session_state.index_questions_df > 0):
                     self.next_page("lose_page")
 
                 col1, col2 = st.columns(2)
