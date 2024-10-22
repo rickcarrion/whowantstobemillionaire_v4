@@ -127,6 +127,8 @@ class UserGUI:
             st.session_state.boolean_unique_answer_send = False
         if 'current_session_status' not in st.session_state:
             st.session_state.current_session_status = None
+        if 'user_didnt_answer' not in st.session_state:
+            st.session_state.user_didnt_answer = False
 
         self.t = 0  # Time default sleep
         if 'questions_df' not in st.session_state:
@@ -143,7 +145,7 @@ class UserGUI:
             st.session_state.multiple_choice_options_shuffle = num_list  # First Time not Shuffle
 
         if 'get_datetime_question_started' not in st.session_state:
-            st.session_state.get_datetime_question_started = True
+            st.session_state.get_datetime_question_started = False
 
         self.cmd_get_session_info = get_queries('session_info')
 
@@ -480,7 +482,8 @@ class UserGUI:
             st.session_state.keep_playing = True
             self.next_page('waiting_page')
         else:
-            self.send_user_answer_by_question(datetime_question_started)
+            if (st.session_state.current_session_status == 'playing'):
+                self.send_user_answer_by_question(datetime_question_started)
             self.next_page("waiting_page")
 
         # st.write(st.session_state.game_code)
