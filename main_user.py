@@ -640,6 +640,11 @@ class UserGUI:
         elif (st.session_state.current_session_status == 'playing'):
             self.next_page("question_page")
 
+    def final_results_page(self):
+        st.balloons()
+        st.header("YOU ARE THE WINNER!!!")
+        st.subheader("🥳🥳🥳")
+
     def run(self):
         if st.session_state.debug:
             st.session_state.current_page = "register_page"
@@ -656,7 +661,7 @@ class UserGUI:
         elif st.session_state.current_page == "lose_page":
             self.lose_page()
         elif st.session_state.current_page == 'final_results_page':
-
+            self.final_results_page()
 
 
 app = UserGUI()

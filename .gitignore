@@ -1,6 +1,7 @@
 .streamlit
 utils
 src/
+.idea
 main.py
 main_user_old.py
 main_user_test_OLD.py
