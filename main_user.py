@@ -482,7 +482,7 @@ class UserGUI:
             st.session_state.keep_playing = True
             self.next_page('waiting_page')
         else:
-            if (st.session_state.current_session_status == 'playing'):
+            if (st.session_state.current_session_status == 'waiting'):
                 self.send_user_answer_by_question(datetime_question_started)
             self.next_page("waiting_page")
 
