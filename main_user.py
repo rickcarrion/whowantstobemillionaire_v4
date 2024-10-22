@@ -91,6 +91,8 @@ class UserGUI:
 
         if 'answer_text' not in st.session_state:
             st.session_state.answer_text = ''
+        if 'congrats_waiting_room' not in st.session_state:
+            st.session_state.congrats_waiting_room = True
 
         if 'current_question_text' not in st.session_state:
             st.session_state.current_question_text = None
@@ -332,6 +334,7 @@ class UserGUI:
 
     def question_page(self):
         if st.session_state.get_datetime_question_started:
+            st.session_state.congrats_waiting_room = True
             st.session_state.datetime_question_started = datetime.now(self.miami_tz)
             q_minutes = st.session_state.score_df.iloc[st.session_state.index_questions_df].QUESTION_TIME_MINUTES
             st.session_state.datetime_question_target = st.session_state.datetime_question_started + timedelta(minutes=q_minutes)
@@ -477,11 +480,13 @@ class UserGUI:
             st.session_state.keep_playing = True
             self.next_page('waiting_page')
         else:
+            self.send_user_answer_by_question(datetime_question_started)
             self.next_page("waiting_page")
 
         # st.write(st.session_state.game_code)
 
         # st.write(st.session_state.current_page)
+
     def send_user_answer_by_question(self, datetime_question_started):
         if not st.session_state.boolean_unique_answer_send:
             SQL = self.cmd_insert_game_answer.format(
@@ -615,7 +620,10 @@ class UserGUI:
                     random_success_message = random.choice(self.list_correct_ans)
 
                     st.success(random_success_message)
-                    st.balloons()
+                    if st.session_state.congrats_waiting_room:
+                        st.balloons()
+                        st.session_state.congrats_waiting_room = False
+
                 elif (st.session_state.keep_playing == False):
                     self.next_page("lose_page")
 
@@ -627,7 +635,7 @@ class UserGUI:
                 with col1:
                     st.header("Waiting Room")
                     with st.status("Waiting"):
-                        time.sleep(10)
+                        time.sleep(5)
                         st.write("Waiting for Host")
 
                 # st.write('Rerunning')
