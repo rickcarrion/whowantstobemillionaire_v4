@@ -287,9 +287,9 @@ class UserGUI:
     def get_current_session_state(self):
         df = exe_sf(create_conn(), sql=self.cmd_get_session_info.format(st.session_state.game_code))
         try:
-            return df["SESSION_STATUS"].iloc[0]
+            return df["SESSION_STATUS"].iloc[0], int(df["SESSION_QUESTION_ID"].iloc[0])
         except:
-            return 'waiting'
+            return 'waiting', st.session_state.index_questions_df
 
     def seconds_to_hms(self, seconds):
         minutes = (seconds % 3600) // 60  # Calculate remaining minutes
@@ -336,6 +336,8 @@ class UserGUI:
 
     def question_page(self):
         if st.session_state.get_datetime_question_started:
+            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
+
             st.session_state.congrats_waiting_room = True
             st.session_state.datetime_question_started = datetime.now(self.miami_tz)
             q_minutes = st.session_state.score_df.iloc[st.session_state.index_questions_df].QUESTION_TIME_MINUTES
@@ -348,7 +350,6 @@ class UserGUI:
             st.session_state.current_question_answers_list = [q["CORRECT_ANSWER"], q["INCORRECT_OPTION_1"],
                                                               q["INCORRECT_OPTION_2"], q["INCORRECT_OPTION_3"]]
             st.session_state.current_question_correct_answer = q["CORRECT_ANSWER"]
-            st.session_state.current_session_status = self.get_current_session_state()
 
         datetime_question_started = st.session_state.datetime_question_started.strftime('%Y-%m-%d %H:%M:%S')
 
@@ -475,7 +476,7 @@ class UserGUI:
 
                 # st.rerun()
             # time.sleep(15)
-            st.session_state.current_session_status = self.get_current_session_state()
+            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
             placeholder.empty()
             st.rerun()
         elif st.session_state.current_session_status == 'playing_again':
@@ -608,7 +609,7 @@ class UserGUI:
         if st.session_state.index_questions_df >= 4:
             st.session_state.show_wildcards = True
 
-        st.session_state.current_session_status = self.get_current_session_state()
+        st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
         # st.write(session_status)
         if (st.session_state.current_session_status == 'waiting') | (st.session_state.current_session_status == 'lobby'):
             placeholder = st.empty()
@@ -642,7 +643,7 @@ class UserGUI:
                         st.write("Waiting for Host")
 
                 # st.write('Rerunning')
-            st.session_state.current_session_status = self.get_current_session_state()
+            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
             placeholder.empty()
             st.rerun()
         elif (st.session_state.current_session_status == 'finished'):
