@@ -506,10 +506,7 @@ class UserGUI:
 
                     with st.spinner("Waiting for Host"):
                         time.sleep(3)
-                        # st.rerun()
 
-                # st.rerun()
-            # time.sleep(15)
             st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
             placeholder.empty()
             st.rerun()
