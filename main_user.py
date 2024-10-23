@@ -515,7 +515,12 @@ class UserGUI:
             if st.session_state.keep_playing:
                 self.next_page("waiting_page")
             else:
-                with st.spinner("Loading Results..."):
+                if st.session_state.user_answer is not None:
+                    st.success('we got your answer 🙂')
+                else:
+                    st.error("You didn't submit your answer 😢")
+
+                with st.spinner("Waiting for Host"):
                     time.sleep(5)
                     st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
                     st.rerun()
