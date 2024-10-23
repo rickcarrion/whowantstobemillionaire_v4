@@ -81,6 +81,8 @@ class UserGUI:
             st.session_state.question_time_minutes = 3.0
         if 'datetime_question_target' not in st.session_state:
             st.session_state.datetime_question_target = None
+        if 'playing_at' not in st.session_state:
+            st.session_state.playing_at = datetime.now(self.miami_tz)
 
         if 'timer_display' not in st.session_state:
             st.session_state.timer_display = True
@@ -105,7 +107,7 @@ class UserGUI:
             st.session_state.disable_question_buttons = False
 
         if 'question_time_left' not in st.session_state:
-            st.session_state.question_time_left = None
+            st.session_state.question_time_left = 15
 
         if 'show_wildcards' not in st.session_state:
             st.session_state.show_wildcards = False
@@ -122,6 +124,9 @@ class UserGUI:
             st.session_state.wildcard_audience_act = False
         if 'wildcard_phone_act' not in st.session_state:
             st.session_state.wildcard_phone_act = False
+
+        if 'last_page' not in st.session_state:
+            st.session_state.last_page = None
 
         if 'boolean_unique_answer_send' not in st.session_state:
             st.session_state.boolean_unique_answer_send = False
@@ -219,6 +224,8 @@ class UserGUI:
             except Exception as e:
                 st.error(f"Error: {e}")
 
+            st.session_state.last_page = 'add_code_page'
+
             # self.next_page("register_page")
 
     def get_other_option_selectbox(self, section, initial_options, other="Other"):
@@ -284,12 +291,14 @@ class UserGUI:
                 else:
                     st.error("Please fill in all fields. The middle name is the only optional field!")
 
+        st.session_state.last_page = 'register_page'
+
     def get_current_session_state(self):
         df = exe_sf(create_conn(), sql=self.cmd_get_session_info.format(st.session_state.game_code))
         try:
-            return df["SESSION_STATUS"].iloc[0], int(df["SESSION_QUESTION_ID"].iloc[0])
+            return df["SESSION_STATUS"].iloc[0], int(df["SESSION_QUESTION_ID"].iloc[0]), df["PLAYING_AT"].iloc[0]
         except:
-            return 'waiting', st.session_state.index_questions_df
+            return 'waiting', st.session_state.index_questions_df, datetime.now()
 
     def seconds_to_hms(self, seconds):
         minutes = (seconds % 3600) // 60  # Calculate remaining minutes
@@ -297,29 +306,32 @@ class UserGUI:
         return f"{minutes:02}:{seconds:02}"  # Format as HH:MM:SS
 
     def countdown_v2(self, datetime_question_started):
-        seconds_to_spend = 20
+        seconds_to_spend = 60
         only_send_once = True
         # if st.session_state.question_time_left
         for i in range(seconds_to_spend):
             datetime_question_current_time = datetime.now(self.miami_tz)
             st.session_state.question_time_left = (st.session_state.datetime_question_target - datetime_question_current_time ).total_seconds()
             # st.write(st.session_state.question_time_left)
-            if (0 < st.session_state.question_time_left < 30) & (st.session_state.user_answer == None):
+            if (0 < st.session_state.question_time_left < 10) & (st.session_state.user_answer == None):
                 # if st.session_state.user_answer == None:
                 st.warning("Hurry up! You’ve only got a few seconds left! If you're unsure, just take a guess!")
-
+                time.sleep(1)
                 #     st.write('⏳ Please select an answer before the time runs out!⏳')
                 # else:
                 #     st.write("Time is almost up!")
             elif 0 < st.session_state.question_time_left:
                 minutes, seconds = divmod(st.session_state.question_time_left, 60)
                 st.subheader(f"⏳ {int(minutes):02d}:{int(seconds):02d} left")
+
+                time.sleep(1)
             else:
                 st.header('Time is over')
                 if only_send_once:
                     self.send_user_answer_by_question(datetime_question_started)
                     only_send_once = False
-            time.sleep(1)
+
+                    time.sleep(3)
 
     def countdown(self):
         timer_length = st.session_state.score_df.iloc[st.session_state.index_questions_df].QUESTION_TIME_MINUTES
@@ -336,7 +348,7 @@ class UserGUI:
 
     def question_page(self):
         if st.session_state.get_datetime_question_started:
-            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
+            st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
 
             st.session_state.congrats_waiting_room = True
             st.session_state.datetime_question_started = datetime.now(self.miami_tz)
@@ -351,16 +363,29 @@ class UserGUI:
                                                               q["INCORRECT_OPTION_2"], q["INCORRECT_OPTION_3"]]
             st.session_state.current_question_correct_answer = q["CORRECT_ANSWER"]
 
+            st.session_state.last_page = 'question_page'
+
         datetime_question_started = st.session_state.datetime_question_started.strftime('%Y-%m-%d %H:%M:%S')
 
-        if (st.session_state.current_session_status == 'playing') & (st.session_state.keep_playing):
+        if (st.session_state.current_session_status == 'playing') & (st.session_state.keep_playing) & (st.session_state.last_page == 'question_page'):
+            now = datetime.now(self.miami_tz)
+            seconds_to_start = st.session_state.playing_at - now
+            if seconds_to_start < 0:
+                pass
+            else:
+                placeholder7 = st.empty()
+                with placeholder7.container:
+                    with st.spinner("Waiting for other players..."):
+                        time.sleep(seconds_to_start)
+
+                placeholder7.empty()
 
             placeholder = st.empty()
             with placeholder.container():
             # with st.empty():
                 if not st.session_state.disable_question_buttons:
                     st.markdown(self.centered_buttons_questions, unsafe_allow_html=True)
-                    st.header("Question Time! 🥳🥳")
+                    st.header("Question {}! ⁉️🤔".format(st.session_state.index_questions_df + 1))
                     st.subheader(st.session_state.current_question_text)  # Show Question
 
                     col1, col2 = st.columns(2)
@@ -398,7 +423,6 @@ class UserGUI:
                         # st.warning()
                     else:
                         st.warning("Please select an option!")
-
 
                     if st.session_state.show_wildcards:
                         if (st.session_state.wildcard_50_50_left > 0) | (st.session_state.wildcard_50_50_act):
@@ -460,10 +484,6 @@ class UserGUI:
 
                                 if st.button("Update Audience Answers"):
                                     st.rerun()
-
-
-
-
                 else:
                     if st.session_state.user_answer is not None:
                         st.success('we got your answer 🙂')
@@ -476,7 +496,7 @@ class UserGUI:
 
                 # st.rerun()
             # time.sleep(15)
-            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
+            st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
             placeholder.empty()
             st.rerun()
         elif st.session_state.current_session_status == 'playing_again':
@@ -486,10 +506,6 @@ class UserGUI:
             if (st.session_state.current_session_status == 'waiting'):
                 self.send_user_answer_by_question(datetime_question_started)
             self.next_page("waiting_page")
-
-        # st.write(st.session_state.game_code)
-
-        # st.write(st.session_state.current_page)
 
     def send_user_answer_by_question(self, datetime_question_started):
         if not st.session_state.boolean_unique_answer_send:
@@ -606,10 +622,13 @@ class UserGUI:
         st.session_state.answer_text = ''  # Reset the answer text
         st.session_state.disable_question_buttons = False
 
+        st.session_state.last_page = 'waiting_page'
+
         if st.session_state.index_questions_df >= 4:
             st.session_state.show_wildcards = True
 
-        st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
+        if st.session_state.current_session_status not in ('finished', 'playing'):
+            st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
         # st.write(session_status)
         if (st.session_state.current_session_status == 'waiting') | (st.session_state.current_session_status == 'lobby'):
             placeholder = st.empty()
@@ -643,7 +662,7 @@ class UserGUI:
                         st.write("Waiting for Host")
 
                 # st.write('Rerunning')
-            st.session_state.current_session_status, st.session_state.index_questions_df = self.get_current_session_state()
+            st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
             placeholder.empty()
             st.rerun()
         elif (st.session_state.current_session_status == 'finished'):
