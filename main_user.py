@@ -369,11 +369,13 @@ class UserGUI:
 
         if (st.session_state.current_session_status == 'playing') & (st.session_state.keep_playing) & (st.session_state.last_page == 'question_page'):
             now = datetime.now(self.miami_tz)
-            st.write(now)
-            st.write(st.session_state.playing_at)
-            st.write(type(st.session_state.playing_at))
+            # st.write(now)
+            # st.write(st.session_state.playing_at)
+            # st.write(type(st.session_state.playing_at))
 
-            seconds_to_start = st.session_state.playing_at - now
+            localized_datetime = self.miami_tz.localize(st.session_state.playing_at)
+
+            seconds_to_start = (localized_datetime - now).total_seconds()
             if seconds_to_start < 0:
                 pass
             else:
