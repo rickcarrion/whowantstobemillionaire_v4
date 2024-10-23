@@ -511,7 +511,14 @@ class UserGUI:
         else:
             if (st.session_state.current_session_status == 'waiting'):
                 self.send_user_answer_by_question(datetime_question_started)
-            self.next_page("waiting_page")
+
+            if st.session_state.keep_playing:
+                self.next_page("waiting_page")
+            else:
+                with st.spinner("Loading Results..."):
+                    time.sleep(5)
+                    st.session_state.current_session_status, st.session_state.index_questions_df, st.session_state.playing_at = self.get_current_session_state()
+                    st.rerun()
 
     def send_user_answer_by_question(self, datetime_question_started):
         if not st.session_state.boolean_unique_answer_send:
@@ -531,6 +538,7 @@ class UserGUI:
             st.session_state.disable_question_buttons = True
             if st.session_state.user_answer != st.session_state.current_question_correct_answer:
                 st.session_state.keep_playing = False
+                # st.write("Hola")
                 index_ = st.session_state.current_question_id
             else:
                 index_ = st.session_state.current_question_id + 1
@@ -538,7 +546,7 @@ class UserGUI:
             SQL_2 = self.cmd_update_user_question_id.format(index_, st.session_state.user_id_logged_in)
             exe_sf(create_conn(), sql=SQL_2, return_as_df=False)
 
-            st.session_state.index_questions_df += 1
+            # st.session_state.index_questions_df += 1
 
             st.session_state.boolean_unique_answer_send = True
 
