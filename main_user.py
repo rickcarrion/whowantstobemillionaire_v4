@@ -310,28 +310,29 @@ class UserGUI:
         only_send_once = True
         # if st.session_state.question_time_left
         for i in range(seconds_to_spend):
-            datetime_question_current_time = datetime.now(self.miami_tz)
-            st.session_state.question_time_left = (st.session_state.datetime_question_target - datetime_question_current_time ).total_seconds()
-            # st.write(st.session_state.question_time_left)
-            if (0 < st.session_state.question_time_left < 10) & (st.session_state.user_answer == None):
-                # if st.session_state.user_answer == None:
-                st.warning("Hurry up! You’ve only got a few seconds left! If you're unsure, just take a guess!")
-                time.sleep(1)
-                #     st.write('⏳ Please select an answer before the time runs out!⏳')
-                # else:
-                #     st.write("Time is almost up!")
-            elif 0 < st.session_state.question_time_left:
-                minutes, seconds = divmod(st.session_state.question_time_left, 60)
-                st.subheader(f"⏳ {int(minutes):02d}:{int(seconds):02d} left")
+            if not st.session_state.disable_question_buttons:
+                datetime_question_current_time = datetime.now(self.miami_tz)
+                st.session_state.question_time_left = (st.session_state.datetime_question_target - datetime_question_current_time ).total_seconds()
+                # st.write(st.session_state.question_time_left)
+                if (0 < st.session_state.question_time_left < 10) & (st.session_state.user_answer == None):
+                    # if st.session_state.user_answer == None:
+                    st.warning("Hurry up! You’ve only got a few seconds left! If you're unsure, just take a guess!")
+                    time.sleep(1)
+                    #     st.write('⏳ Please select an answer before the time runs out!⏳')
+                    # else:
+                    #     st.write("Time is almost up!")
+                elif 0 < st.session_state.question_time_left:
+                    minutes, seconds = divmod(st.session_state.question_time_left, 60)
+                    st.subheader(f"⏳ {int(minutes):02d}:{int(seconds):02d} left")
 
-                time.sleep(1)
-            else:
-                st.header('Time is over')
-                if only_send_once:
-                    self.send_user_answer_by_question(datetime_question_started)
-                    only_send_once = False
+                    time.sleep(1)
+                else:
+                    st.header('Time is over')
+                    if only_send_once:
+                        self.send_user_answer_by_question(datetime_question_started)
+                        only_send_once = False
 
-                    time.sleep(3)
+                        time.sleep(3)
 
     def countdown(self):
         timer_length = st.session_state.score_df.iloc[st.session_state.index_questions_df].QUESTION_TIME_MINUTES
@@ -494,6 +495,9 @@ class UserGUI:
 
                                 if st.button("Update Audience Answers"):
                                     st.rerun()
+
+                    with st.empty():
+                        self.countdown_v2(datetime_question_started)
                 else:
                     if st.session_state.user_answer is not None:
                         st.success('we got your answer 🙂')
@@ -501,8 +505,7 @@ class UserGUI:
                         st.error("You didn't submit your answer 😢")
                     with st.spinner("Waiting for Host"):
                         time.sleep(3)
-                with st.empty():
-                    self.countdown_v2(datetime_question_started)
+                        st.rerun()
 
                 # st.rerun()
             # time.sleep(15)
