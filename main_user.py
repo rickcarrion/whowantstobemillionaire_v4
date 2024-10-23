@@ -358,7 +358,7 @@ class UserGUI:
             st.session_state.get_datetime_question_started = False
 
             q = st.session_state.questions_df.iloc[st.session_state.index_questions_df]
-            st.session_state.current_question_id = q["QUESTION_ID"]
+            st.session_state.current_question_id = int(q["QUESTION_ID"]) - 1
             st.session_state.current_question_text = q["QUESTION"]
             st.session_state.current_question_answers_list = [q["CORRECT_ANSWER"], q["INCORRECT_OPTION_1"],
                                                               q["INCORRECT_OPTION_2"], q["INCORRECT_OPTION_3"]]
@@ -515,6 +515,9 @@ class UserGUI:
 
     def send_user_answer_by_question(self, datetime_question_started):
         if not st.session_state.boolean_unique_answer_send:
+            # if st.session_state.current_session_status == 'waiting':
+            #     index_value = st.session_state.
+
             SQL = self.cmd_insert_game_answer.format(
                 st.session_state.user_id_logged_in,
                 st.session_state.current_question_id,
@@ -528,9 +531,9 @@ class UserGUI:
             st.session_state.disable_question_buttons = True
             if st.session_state.user_answer != st.session_state.current_question_correct_answer:
                 st.session_state.keep_playing = False
-                index_ = st.session_state.index_questions_df
+                index_ = st.session_state.current_question_id
             else:
-                index_ = st.session_state.index_questions_df + 1
+                index_ = st.session_state.current_question_id + 1
 
             SQL_2 = self.cmd_update_user_question_id.format(index_, st.session_state.user_id_logged_in)
             exe_sf(create_conn(), sql=SQL_2, return_as_df=False)
