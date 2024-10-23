@@ -380,7 +380,7 @@ class UserGUI:
                 pass
             else:
                 placeholder7 = st.empty()
-                with placeholder7.container:
+                with placeholder7.container():
                     with st.spinner("Waiting for other players..."):
                         time.sleep(seconds_to_start)
 
