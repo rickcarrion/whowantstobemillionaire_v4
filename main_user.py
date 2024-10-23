@@ -382,7 +382,11 @@ class UserGUI:
                 placeholder7 = st.empty()
                 with placeholder7.container():
                     with st.spinner("Waiting for other players..."):
-                        time.sleep(seconds_to_start)
+                        now = datetime.now(self.miami_tz)
+                        seconds_to_start = (localized_datetime - now).total_seconds()
+
+                        if seconds_to_start > 0:
+                            time.sleep(seconds_to_start)
 
                 placeholder7.empty()
 
