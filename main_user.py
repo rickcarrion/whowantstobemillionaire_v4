@@ -503,9 +503,10 @@ class UserGUI:
                         st.success('we got your answer 🙂')
                     else:
                         st.error("You didn't submit your answer 😢")
+
                     with st.spinner("Waiting for Host"):
                         time.sleep(3)
-                        st.rerun()
+                        # st.rerun()
 
                 # st.rerun()
             # time.sleep(15)
