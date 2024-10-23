@@ -524,12 +524,13 @@ class UserGUI:
             )
             # st.write(SQL)
             exe_sf(create_conn(), sql=SQL, return_as_df=False)
+
             st.session_state.disable_question_buttons = True
             if st.session_state.user_answer != st.session_state.current_question_correct_answer:
                 st.session_state.keep_playing = False
-                index_ = st.session_state.index_questions_df
-            else:
                 index_ = st.session_state.index_questions_df + 1
+            else:
+                index_ = st.session_state.index_questions_df + 2
 
             SQL_2 = self.cmd_update_user_question_id.format(index_, st.session_state.user_id_logged_in)
             exe_sf(create_conn(), sql=SQL_2, return_as_df=False)
